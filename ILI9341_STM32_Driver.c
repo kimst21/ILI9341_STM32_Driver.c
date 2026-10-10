@@ -72,29 +72,21 @@ void ILI9341_SetAddress(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 	ILI9341_WriteCommand(0x2C);
 }
 
+/* 소프트 리셋: RST 핀 없이 명령 0x01(Software Reset)로 리셋 */
 void ILI9341_Reset(void)
 {
-	HAL_GPIO_WritePin(LCD_RST_PORT, LCD_RST_PIN, GPIO_PIN_RESET);	//Disable
-	HAL_Delay(10);
-	HAL_GPIO_WritePin(LCD_CS_PORT, LCD_CS_PIN, GPIO_PIN_RESET);		//Select
-	HAL_Delay(10);
-	HAL_GPIO_WritePin(LCD_RST_PORT, LCD_RST_PIN, GPIO_PIN_SET);		//Enable
-	HAL_GPIO_WritePin(LCD_CS_PORT, LCD_CS_PIN, GPIO_PIN_SET); 		//Deselect
+	HAL_GPIO_WritePin(LCD_CS_PORT, LCD_CS_PIN, GPIO_PIN_SET);	// CS를 HIGH(비선택)로 정리
+	HAL_Delay(10);							// 전원이 안정되도록 잠깐 대기
+
+	ILI9341_WriteCommand(0x01);					// Software Reset 명령
+	HAL_Delay(120);							// 리셋 후 대기 (아래 설명 참고)
 }
 
-void ILI9341_Enable(void)
-{
-	HAL_GPIO_WritePin(LCD_RST_PORT, LCD_RST_PIN, GPIO_PIN_SET);		//Enable
-}
+/* RST 핀을 쓰지 않으므로 하는 일이 없음 (Init에서 부르는 형태만 유지) */
 
 void ILI9341_Init(void)
 {
-	ILI9341_Enable();
 	ILI9341_Reset();
-
-	//SOFTWARE RESET
-	ILI9341_WriteCommand(0x01);
-	HAL_Delay(10);
 
 	//POWER CONTROL A
 	ILI9341_WriteCommand(0xCB);
